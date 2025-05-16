@@ -24,12 +24,12 @@ class SignUpViewModel: ObservableObject {
         isLoading = true
         errorMessage = ""
         
+        // Async task to sign up the user
         Task {
             do {
-                // Primero creamos el usuario
                 let user = try await firebaseService.createUser(email: email, password: password)
                 
-                // Luego iniciamos sesión automáticamente
+                // Automatically sign in the user after successful sign-up
                 try await firebaseService.signIn(email: email, password: password)
                 
                 await MainActor.run {

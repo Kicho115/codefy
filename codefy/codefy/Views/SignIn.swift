@@ -9,10 +9,8 @@ import SwiftUI
 
 struct SignIn: View {
     @StateObject private var viewModel = SignInViewModel()
-    @State private var showSignUp = false
     
     var body: some View {
-        NavigationView {
             VStack(spacing: 20) {
                 Text("Welcome to Codefy")
                     .font(.largeTitle)
@@ -47,20 +45,15 @@ struct SignIn: View {
                 .cornerRadius(10)
                 .disabled(viewModel.isLoading)
                 
-                Button(action: { showSignUp = true }) {
-                    Text("Don't have an account?")
-                        .foregroundColor(.blue)
-                }
-                .padding(.top)
+                NavigationLink("Don't have an account?", destination: SignUp())
+                    .foregroundColor(.blue)
+                    .padding(.top)
             }
             .padding()
-            .navigationBarHidden(true)
-            .sheet(isPresented: $showSignUp) {
-                SignUp()
-            }
+            .navigationBarBackButtonHidden(true)
         }
     }
-}
+
 
 #Preview {
     SignIn()
