@@ -1,20 +1,13 @@
-//
-//  SignIn.swift
-//  codefy
-//
-//  Created by Oscar Angulo on 5/14/25.
-//
-
 import SwiftUI
 
-struct SignIn: View {
-    @StateObject private var viewModel = SignInViewModel()
-    @State private var showSignUp = false
+struct SignUp: View {
+    @StateObject private var viewModel = SignUpViewModel()
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Welcome to Codefy")
+                Text("Create Account")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
@@ -26,18 +19,21 @@ struct SignIn: View {
                 SecureField("Password", text: $viewModel.password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
+                SecureField("Confirm Password", text: $viewModel.confirmPassword)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
                 if !viewModel.errorMessage.isEmpty {
                     Text(viewModel.errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
                 }
                 
-                Button(action: { viewModel.signIn() }) {
+                Button(action: { viewModel.signUp() }) {
                     if viewModel.isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Sign In")
+                        Text("Sign Up")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                     }
@@ -47,21 +43,23 @@ struct SignIn: View {
                 .cornerRadius(10)
                 .disabled(viewModel.isLoading)
                 
-                Button(action: { showSignUp = true }) {
-                    Text("Don't have an account?")
+                Button(action: { dismiss() }) {
+                    Text("Already have an account?")
                         .foregroundColor(.blue)
                 }
                 .padding(.top)
             }
             .padding()
             .navigationBarHidden(true)
-            .sheet(isPresented: $showSignUp) {
-                SignUp()
+        }
+        .onChange(of: viewModel.isLoggedIn) { newValue in
+            if newValue {
+                dismiss()
             }
         }
     }
 }
 
 #Preview {
-    SignIn()
-}
+    SignUp()
+} 
