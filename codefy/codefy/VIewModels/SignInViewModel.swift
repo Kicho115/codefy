@@ -7,6 +7,7 @@ class SignInViewModel: ObservableObject {
     @Published var errorMessage: String = ""
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = false
+    @AppStorage("isLoggedIn") private var globalIsLoggedIn: Bool = false
     
     private let firebaseService: FirebaseService
     
@@ -23,13 +24,14 @@ class SignInViewModel: ObservableObject {
             do {
                 let user = try await firebaseService.signIn(email: email, password: password)
                 await MainActor.run {
-                    isLoggedIn = true
-                    isLoading = false
+                    self.isLoggedIn = true
+                    self.globalIsLoggedIn = true
+                    self.isLoading = false
                 }
             } catch {
                 await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
                 }
             }
         }

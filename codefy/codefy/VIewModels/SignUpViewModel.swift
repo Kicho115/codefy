@@ -2,12 +2,14 @@ import SwiftUI
 import Combine
 
 class SignUpViewModel: ObservableObject {
+    @Published var name: String = ""
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var confirmPassword: String = ""
     @Published var errorMessage: String = ""
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = false
+    @AppStorage("isLoggedIn") private var globalIsLoggedIn: Bool = false
     
     private let firebaseService: FirebaseService
     
@@ -16,30 +18,36 @@ class SignUpViewModel: ObservableObject {
     }
     
     func signUp() {
+        guard !name.isEmpty else {
+            errorMessage = "Please enter your name"
+            return
+        }
+        
         guard password == confirmPassword else {
             errorMessage = "Passwords do not match"
             return
         }
         
-        isLoading = true
         errorMessage = ""
+        isLoading = true
         
         // Async task to sign up the user
         Task {
             do {
-                let user = try await firebaseService.createUser(email: email, password: password)
+                let user = try await firebaseService.createUser(email: email, password: password, name: name)
                 
                 // Automatically sign in the user after successful sign-up
                 try await firebaseService.signIn(email: email, password: password)
                 
                 await MainActor.run {
-                    isLoggedIn = true
-                    isLoading = false
+                    self.isLoggedIn = true
+                    self.globalIsLoggedIn = true
+                    self.isLoading = false
                 }
             } catch {
                 await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
                 }
             }
         }

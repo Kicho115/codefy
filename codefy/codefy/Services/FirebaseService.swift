@@ -12,11 +12,16 @@ class FirebaseService {
     // MARK: - Authentication Methods
     
     func signIn(email: String, password: String) async throws -> User {
+        print("Signing in with email: \(email)")
         let result = try await auth.signIn(withEmail: email, password: password)
+        print("Sign in successful")
         let firebaseUser = result.user
         
         // Get user data from Firestore
+        print("Fetching user data for user ID: \(firebaseUser.uid)")
         let userData = try await getUserData(userId: firebaseUser.uid)
+
+        print("userData: \(userData)")
         
         // Create custom User object
         return User(
@@ -64,13 +69,13 @@ class FirebaseService {
         try auth.signOut()
     }
     
-    func createUser(email: String, password: String) async throws -> User {
+    func createUser(email: String, password: String, name: String) async throws -> User {
         let result = try await auth.createUser(withEmail: email, password: password)
         let firebaseUser = result.user
         
         // Create initial user data
         let initialUserData: [String: Any] = [
-            "name": "",
+            "name": name,
             "createdAt": Timestamp(date: Date()),
             "lastLoginAt": Timestamp(date: Date()),
             "streak": 0,
@@ -96,7 +101,7 @@ class FirebaseService {
         return User(
             id: firebaseUser.uid,
             email: firebaseUser.email ?? "",
-            name: "",
+            name: name,
             photoURL: nil,
             bio: nil,
             country: nil,

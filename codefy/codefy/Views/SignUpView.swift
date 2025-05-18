@@ -10,6 +10,10 @@ struct SignUpView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
+            TextField("Name", text: $viewModel.name)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .autocapitalization(.words)
+            
             TextField("Email", text: $viewModel.email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocapitalization(.none)

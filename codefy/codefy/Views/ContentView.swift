@@ -8,8 +8,9 @@ struct ContentView: View {
             Group {
                 if isLoggedIn {
                     HomeView()
+                        .navigationBarBackButtonHidden(true)
                 } else {
-                    SignUpView()
+                    SignInView()
                 }
             }
         }
