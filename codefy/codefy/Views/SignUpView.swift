@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SignUp: View {
+struct SignUpView: View {
     @StateObject private var viewModel = SignUpViewModel()
     @Environment(\.dismiss) private var dismiss
     
@@ -42,7 +42,7 @@ struct SignUp: View {
             .cornerRadius(10)
             .disabled(viewModel.isLoading)
             
-            NavigationLink("Already have an account?", destination: SignIn())
+            NavigationLink("Already have an account?", destination: SignInView())
                 .foregroundColor(.blue)
                 .padding(.top)
         }
@@ -58,5 +58,5 @@ struct SignUp: View {
 
 
 #Preview {
-    SignUp()
+    SignUpView()
 } 

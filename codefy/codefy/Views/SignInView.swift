@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SignIn: View {
+struct SignInView: View {
     @StateObject private var viewModel = SignInViewModel()
     
     var body: some View {
@@ -45,7 +45,7 @@ struct SignIn: View {
                 .cornerRadius(10)
                 .disabled(viewModel.isLoading)
                 
-                NavigationLink("Don't have an account?", destination: SignUp())
+                NavigationLink("Don't have an account?", destination: SignUpView())
                     .foregroundColor(.blue)
                     .padding(.top)
             }
@@ -56,5 +56,5 @@ struct SignIn: View {
 
 
 #Preview {
-    SignIn()
+    SignInView()
 }

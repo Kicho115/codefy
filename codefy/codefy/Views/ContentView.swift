@@ -9,7 +9,7 @@ struct ContentView: View {
                 if isLoggedIn {
                     HomeView()
                 } else {
-                    SignUp()
+                    SignUpView()
                 }
             }
         }
