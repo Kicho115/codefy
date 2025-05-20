@@ -7,7 +7,7 @@ struct ContentView: View {
         NavigationStack {
             Group {
                 if isLoggedIn {
-                    HomeView()
+                    MainTabView()
                         .navigationBarBackButtonHidden(true)
                 } else {
                     SignInView()
