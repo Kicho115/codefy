@@ -12,16 +12,12 @@ class FirebaseService {
     // MARK: - Authentication Methods
     
     func signIn(email: String, password: String) async throws -> User {
-        print("Signing in with email: \(email)")
         let result = try await auth.signIn(withEmail: email, password: password)
-        print("Sign in successful")
         let firebaseUser = result.user
         
         // Get user data from Firestore
         print("Fetching user data for user ID: \(firebaseUser.uid)")
         let userData = try await getUserData(userId: firebaseUser.uid)
-
-        print("userData: \(userData)")
         
         // Create custom User object
         return User(

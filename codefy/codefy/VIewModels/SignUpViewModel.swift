@@ -10,6 +10,7 @@ class SignUpViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = false
     @AppStorage("isLoggedIn") private var globalIsLoggedIn: Bool = false
+    @AppStorage("userId") var userId: String = ""
     
     private let firebaseService: FirebaseService
     
@@ -34,14 +35,15 @@ class SignUpViewModel: ObservableObject {
         // Async task to sign up the user
         Task {
             do {
-                let user = try await firebaseService.createUser(email: email, password: password, name: name)
+                let _ = try await firebaseService.createUser(email: email, password: password, name: name)
                 
                 // Automatically sign in the user after successful sign-up
-                try await firebaseService.signIn(email: email, password: password)
+                let signedInUser = try await firebaseService.signIn(email: email, password: password)
                 
                 await MainActor.run {
                     self.isLoggedIn = true
                     self.globalIsLoggedIn = true
+                    self.userId = signedInUser.id
                     self.isLoading = false
                 }
             } catch {

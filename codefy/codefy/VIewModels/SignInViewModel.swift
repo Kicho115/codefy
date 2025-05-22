@@ -8,6 +8,7 @@ class SignInViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isLoggedIn: Bool = false
     @AppStorage("isLoggedIn") private var globalIsLoggedIn: Bool = false
+    @AppStorage("userId") var userId: String = ""
     
     private let firebaseService: FirebaseService
     
@@ -27,6 +28,7 @@ class SignInViewModel: ObservableObject {
                     self.isLoggedIn = true
                     self.globalIsLoggedIn = true
                     self.isLoading = false
+                    self.userId = user.id
                 }
             } catch {
                 await MainActor.run {
