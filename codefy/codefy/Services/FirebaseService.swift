@@ -16,7 +16,6 @@ class FirebaseService {
         let firebaseUser = result.user
         
         // Get user data from Firestore
-        print("Fetching user data for user ID: \(firebaseUser.uid)")
         let userData = try await getUserData(userId: firebaseUser.uid)
         
         // Create custom User object

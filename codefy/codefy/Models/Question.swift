@@ -1,5 +1,13 @@
 import Foundation
 
+enum Category: String, Codable, CaseIterable {
+    case oop = "OOP"
+    case webdev = "WebDev"
+    case swift = "Swift"
+    case humanResources = "Human Resources"
+    case uncategorized = "Uncategorized"
+}
+
 struct Question: Identifiable, Codable {
     var id: String
     var text: String
@@ -8,6 +16,7 @@ struct Question: Identifiable, Codable {
     var points: Int
     var createdAt: Date
     var createdBy: String
+    var category: Category
     
     init(id: String = UUID().uuidString,
          text: String,
@@ -15,7 +24,8 @@ struct Question: Identifiable, Codable {
          correctOptionIndex: Int,
          points: Int,
          createdAt: Date = Date(),
-         createdBy: String) {
+         createdBy: String,
+         category: Category = .uncategorized) {
         self.id = id
         self.text = text
         self.options = options
@@ -23,5 +33,6 @@ struct Question: Identifiable, Codable {
         self.points = points
         self.createdAt = createdAt
         self.createdBy = createdBy
+        self.category = category
     }
 } 

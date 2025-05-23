@@ -12,6 +12,14 @@ struct CreateQuestionView: View {
                     TextField("Enter your question", text: $viewModel.questionText)
                 }
                 
+                Section(header: Text("Category")) {
+                    Picker("Select category", selection: $viewModel.category) {
+                        ForEach(Category.allCases, id: \.self) { category in
+                            Text(category.rawValue).tag(category)
+                        }
+                    }
+                }
+                
                 Section(header: Text("Options")) {
                     ForEach(0..<4) { index in
                         TextField("Option \(index + 1)", text: $viewModel.options[index])

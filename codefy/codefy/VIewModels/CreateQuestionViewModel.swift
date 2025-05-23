@@ -9,6 +9,7 @@ class CreateQuestionViewModel: ObservableObject {
     @Published var points: String = ""
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var category: Category = .uncategorized
     
     private let questionService: QuestionService
     
@@ -42,7 +43,8 @@ class CreateQuestionViewModel: ObservableObject {
             options: options,
             correctOptionIndex: correctOptionIndex,
             points: pointsInt,
-            createdBy: userId
+            createdBy: userId,
+            category: category
         )
         
         do {
@@ -60,5 +62,6 @@ class CreateQuestionViewModel: ObservableObject {
         options = ["", "", "", ""]
         correctOptionIndex = 0
         points = ""
+        category = .swift
     }
 } 
