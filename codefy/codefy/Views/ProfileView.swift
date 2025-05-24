@@ -1,7 +1,10 @@
 import SwiftUI
+import PhotosUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var showingImagePicker = false
     
     var body: some View {
         NavigationView {
@@ -14,10 +17,41 @@ struct ProfileView: View {
                         VStack(spacing: 20) {
                             // Profile Header
                             VStack(spacing: 12) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .frame(width: 100, height: 100)
-                                    .foregroundColor(.blue)
+                                if let photoUrl = user.photoUrl,
+                                   let url = URL(string: photoUrl) {
+                                    Menu {
+                                        Button(action: {
+                                            showingImagePicker = true
+                                        }) {
+                                            Label("Change Profile Picture", systemImage: "photo")
+                                        }
+                                    } label: {
+                                        AsyncImage(url: url) { image in
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        } placeholder: {
+                                            Image(systemName: "person.circle.fill")
+                                                .resizable()
+                                        }
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.blue, lineWidth: 2))
+                                    }
+                                } else {
+                                    Menu {
+                                        Button(action: {
+                                            showingImagePicker = true
+                                        }) {
+                                            Label("Change Profile Picture", systemImage: "photo")
+                                        }
+                                    } label: {
+                                        Image(systemName: "person.circle.fill")
+                                            .resizable()
+                                            .frame(width: 100, height: 100)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
                                 
                                 Text(user.name)
                                     .font(.title)
@@ -68,6 +102,18 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .photosPicker(isPresented: $showingImagePicker,
+                         selection: $selectedItem,
+                         matching: .images)
+            .onChange(of: selectedItem) { oldValue, newValue in
+                if let newValue {
+                    Task {
+                        if let data = try? await newValue.loadTransferable(type: Data.self) {
+                            await viewModel.updateProfilePhoto(data)
+                        }
+                    }
+                }
+            }
         }
         .task {
             await viewModel.loadUserProfile()

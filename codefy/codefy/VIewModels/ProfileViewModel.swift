@@ -48,4 +48,29 @@ class ProfileViewModel: ObservableObject {
             print("Error updating last login: \(error)")
         }
     }
+    
+    func updateProfilePhoto(_ imageData: Data) async {
+        guard let userId = userId else { return }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            // Upload image to Firebase Storage
+            let path = "profile_photos/\(userId).jpg"
+            let photoUrl = try await StorageService.shared.uploadData(imageData, path: path)
+            
+            // Update user document in Firestore
+            try await db.collection("users").document(userId).updateData([
+                "photoUrl": photoUrl.absoluteString
+            ])
+            
+            // Reload user profile to reflect changes
+            await loadUserProfile()
+        } catch {
+            self.error = error
+        }
+        
+        isLoading = false
+    }
 } 

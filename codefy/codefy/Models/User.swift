@@ -5,7 +5,7 @@ struct User: Codable, Identifiable {
     let id: String
     let email: String?
     var name: String
-    var photoURL: String?
+    var photoUrl: String?
     var bio: String?
     var country: String?
     let createdAt: Date
@@ -122,7 +122,7 @@ extension User {
         data["id"] = id
         data["email"] = email
         data["name"] = name
-        data["photoURL"] = photoURL
+        data["photoUrl"] = photoUrl
         data["bio"] = bio
         data["country"] = country
         data["createdAt"] = Timestamp(date: createdAt)
