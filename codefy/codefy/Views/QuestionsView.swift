@@ -102,7 +102,7 @@ struct QuestionsView: View {
         case .oop: return "square.stack.fill"
         case .webdev: return "globe"
         case .humanResources: return "person.2.fill"
-        case .estructure: return "list.bullet.rectangle"
+        case .structure: return "list.bullet.rectangle"
         case .uncategorized: return "questionmark.circle"
         case .swift: return "sparkles"
         }
@@ -113,7 +113,7 @@ struct QuestionsView: View {
         case .oop: return "OOP"
         case .webdev: return "WebDev"
         case .humanResources: return "HR"
-        case .estructure: return "Data Structures"
+        case .structure: return "Data Structures"
         case .swift: return "Swift"
         case .uncategorized: return "Other"
         }
@@ -124,7 +124,7 @@ struct QuestionsView: View {
         case .oop: return .blue
         case .webdev: return .green
         case .humanResources: return .orange
-        case .estructure: return .purple
+        case .structure: return .purple
         case .uncategorized: return .gray
         case .swift: return .red
         }

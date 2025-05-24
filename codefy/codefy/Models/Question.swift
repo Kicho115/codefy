@@ -5,7 +5,7 @@ enum Category: String, Codable, CaseIterable {
     case oop = "OOP"
     case webdev = "WebDev"
     case swift = "Swift"
-    case estructure = "Data Estructure"
+    case structure = "Data Structures"
     case humanResources = "Human Resources"
     case uncategorized = "Uncategorized"
     

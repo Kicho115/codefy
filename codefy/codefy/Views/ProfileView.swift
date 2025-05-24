@@ -1,20 +1,104 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @StateObject private var viewModel = ProfileViewModel()
+    
     var body: some View {
         NavigationView {
-            VStack {
-                Text("Perfil")
-                    .font(.largeTitle)
-                    .padding()
-                
-                Text("Contenido del perfil")
-                    .padding()
-                
-                Spacer()
+            Group {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if let user = viewModel.user {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            // Profile Header
+                            VStack(spacing: 12) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 100, height: 100)
+                                    .foregroundColor(.blue)
+                                
+                                Text(user.name)
+                                    .font(.title)
+                                    .bold()
+                                
+                                HStack {
+                                    Text("Member since \(user.formattedMemberSince)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Text("•")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    Text("Last login: \(user.formattedLastLogin)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.top)
+                            
+                            // Stats Grid
+                            LazyVGrid(columns: [
+                                GridItem(.flexible()),
+                                GridItem(.flexible())
+                            ], spacing: 20) {
+                                StatCard(title: "Points", value: "\(user.points)", icon: "star.fill")
+                                StatCard(title: "Rank", value: "\(user.rank)", icon: "trophy.fill")
+                                StatCard(title: "Streak", value: "\(user.streak) days", icon: "flame.fill")
+                                StatCard(title: "Questions Answered", value: "\(user.totalQuestionsAnswered)", icon: "questionmark.circle.fill")
+                            }
+                            .padding(.horizontal)
+                            
+                            Spacer()
+                        }
+                    }
+                } else if let error = viewModel.error {
+                    VStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.largeTitle)
+                            .foregroundColor(.red)
+                        Text("Error loading profile")
+                            .font(.headline)
+                        Text(error.localizedDescription)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                    }
+                }
             }
-            .navigationTitle("Perfil")
+            .navigationTitle("Profile")
         }
+        .task {
+            await viewModel.loadUserProfile()
+            await viewModel.updateLastLogin()
+        }
+    }
+}
+
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.blue)
+            
+            Text(value)
+                .font(.title3)
+                .bold()
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 }
 

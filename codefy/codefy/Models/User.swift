@@ -3,7 +3,7 @@ import FirebaseFirestore
 
 struct User: Codable, Identifiable {
     let id: String
-    let email: String
+    let email: String?
     var name: String
     var photoURL: String?
     var bio: String?
@@ -63,6 +63,18 @@ struct User: Codable, Identifiable {
         case medium
         case hard
     }
+    
+    var formattedMemberSince: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: createdAt, relativeTo: Date())
+    }
+    
+    var formattedLastLogin: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: lastLoginAt, relativeTo: Date())
+    }
 }
 
 // MARK: - Firestore Integration
@@ -70,9 +82,33 @@ extension User {
     static func fromFirestore(_ document: DocumentSnapshot) -> User? {
         guard let data = document.data() else { return nil }
         
+        // Convert Firestore timestamps to ISO8601 strings
+        var processedData = data
+        // Add the document ID as the id field
+        processedData["id"] = document.documentID
+        
+        if let createdAt = data["createdAt"] as? Timestamp {
+            processedData["createdAt"] = createdAt.dateValue().ISO8601Format()
+        }
+        if let lastLoginAt = data["lastLoginAt"] as? Timestamp {
+            processedData["lastLoginAt"] = lastLoginAt.dateValue().ISO8601Format()
+        }
+        
+        // Process activity history timestamps
+        if var activityHistory = processedData["activityHistory"] as? [[String: Any]] {
+            for i in 0..<activityHistory.count {
+                if let date = activityHistory[i]["date"] as? Timestamp {
+                    activityHistory[i]["date"] = date.dateValue().ISO8601Format()
+                }
+            }
+            processedData["activityHistory"] = activityHistory
+        }
+        
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: data)
-            return try JSONDecoder().decode(User.self, from: jsonData)
+            let jsonData = try JSONSerialization.data(withJSONObject: processedData)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            return try decoder.decode(User.self, from: jsonData)
         } catch {
             print("Error decoding user: \(error)")
             return nil
@@ -80,12 +116,47 @@ extension User {
     }
     
     func toFirestore() -> [String: Any] {
-        do {
-            let jsonData = try JSONEncoder().encode(self)
-            return try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] ?? [:]
-        } catch {
-            print("Error encoding user: \(error)")
-            return [:]
+        var data: [String: Any] = [:]
+        
+        // Convert Date to Timestamp for Firestore
+        data["id"] = id
+        data["email"] = email
+        data["name"] = name
+        data["photoURL"] = photoURL
+        data["bio"] = bio
+        data["country"] = country
+        data["createdAt"] = Timestamp(date: createdAt)
+        data["lastLoginAt"] = Timestamp(date: lastLoginAt)
+        
+        // Stats
+        data["streak"] = streak
+        data["totalQuestionsAnswered"] = totalQuestionsAnswered
+        data["correctAnswers"] = correctAnswers
+        data["points"] = points
+        data["dailyQuestionStreak"] = dailyQuestionStreak
+        data["rank"] = rank
+        
+        // Preferences
+        data["favoriteQuestions"] = favoriteQuestions
+        data["completedQuestions"] = completedQuestions
+        
+        // Notification settings
+        data["notificationSettings"] = [
+            "email": notificationSettings.email,
+            "push": notificationSettings.push,
+            "dailyReminder": notificationSettings.dailyReminder
+        ]
+        
+        // Activity history
+        data["activityHistory"] = activityHistory.map { record in
+            [
+                "date": Timestamp(date: record.date),
+                "type": record.type.rawValue,
+                "questionId": record.questionId,
+                "result": record.result.rawValue
+            ]
         }
+        
+        return data
     }
 }
