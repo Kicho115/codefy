@@ -50,7 +50,15 @@ struct QuestionsView: View {
                     }.padding(.horizontal)
                 }
 
-                if let category = selectedCategory, let questions = viewModel.groupedQuestions[category] {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding()
+                } else if !viewModel.errorMessage.isEmpty {
+                    Text(viewModel.errorMessage)
+                        .foregroundColor(.red)
+                        .padding()
+                } else if let category = selectedCategory, let questions = viewModel.groupedQuestions[category] {
                     Text("Preguntas de \(titleForCategory(category))")
                         .font(.title3)
                         .bold()
@@ -84,12 +92,11 @@ struct QuestionsView: View {
                 }
             }
         }
+        .refreshable {
+            await viewModel.fetchQuestions()
+        }
     }
 
- 
-}
-
-    
     private func iconForCategory(_ category: Category) -> String {
         switch category {
         case .oop: return "square.stack.fill"
@@ -103,12 +110,12 @@ struct QuestionsView: View {
     
     private func titleForCategory(_ category: Category) -> String {
         switch category {
-        case .oop: return "POO"
+        case .oop: return "OOP"
         case .webdev: return "WebDev"
         case .humanResources: return "HR"
-        case .estructure: return "Data Estructure"
-        case .uncategorized: return "Otros"
+        case .estructure: return "Data Structures"
         case .swift: return "Swift"
+        case .uncategorized: return "Other"
         }
     }
     
@@ -122,7 +129,7 @@ struct QuestionsView: View {
         case .swift: return .red
         }
     }
-
+}
 
 struct QuestionDetailView: View {
     var question: Question
@@ -146,6 +153,5 @@ struct QuestionDetailView: View {
             }
             .padding()
         }
-     
     }
 }
