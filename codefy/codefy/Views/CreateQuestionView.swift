@@ -2,58 +2,74 @@ import SwiftUI
 
 struct CreateQuestionView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = CreateQuestionViewModel()
+    @ObservedObject var questionsViewModel: QuestionsViewModel
+    @StateObject private var viewModel: CreateQuestionViewModel
     @AppStorage("userId") private var userId: String = ""
-    
+
+    init(questionsViewModel: QuestionsViewModel) {
+        self.questionsViewModel = questionsViewModel
+        _viewModel = StateObject(wrappedValue: CreateQuestionViewModel())
+    }
+
     var body: some View {
         NavigationView {
-            Form {
-                Section(header: Text("Question")) {
-                    TextField("Enter your question", text: $viewModel.questionText)
-                }
-                
-                Section(header: Text("Category")) {
-                    Picker("Select category", selection: $viewModel.category) {
-                        ForEach(Category.allCases, id: \.self) { category in
-                            Text(category.rawValue).tag(category)
-                        }
-                    }
-                }
-                
-                Section(header: Text("Options")) {
-                    ForEach(0..<4) { index in
-                        TextField("Option \(index + 1)", text: $viewModel.options[index])
-                    }
-                }
-                
-                Section(header: Text("Points")) {
-                    TextField("Points (1-10)", text: $viewModel.points)
-                        .keyboardType(.numberPad)
+            ScrollView {
+                VStack(spacing: 20) {
+ 
                     
-                    if !viewModel.isValidPoints && !viewModel.points.isEmpty {
-                        Text("Points must be between 1 and 10")
-                            .foregroundColor(.red)
-                            .font(.caption)
+                    GroupBox(label: Label("Question", systemImage: "text.book.closed").foregroundColor(.blue)) {
+                        TextField("Enter your question", text: $viewModel.questionText)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(5)
                     }
-                }
-                
-                Section(header: Text("Correct Answer")) {
-                    Picker("Select correct option", selection: $viewModel.correctOptionIndex) {
+
+                    GroupBox(label: Label("Category", systemImage: "tag").foregroundColor(.purple)) {
+                        Picker("Select category", selection: $viewModel.category) {
+                            ForEach(Category.allCases, id: \.self) { category in
+                                Text(category.rawValue).tag(category)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(5)
+                    }
+
+                    GroupBox(label: Label("Options", systemImage: "list.bullet").foregroundColor(.green)) {
                         ForEach(0..<4) { index in
-                            Text("Option \(index + 1)").tag(index)
+                            TextField("Option \(index + 1)", text: $viewModel.options[index])
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding(.vertical, 2)
                         }
                     }
-                }
-                
-                if let errorMessage = viewModel.errorMessage {
-                    Section {
+
+                    GroupBox(label: Label("Points", systemImage: "number.circle").foregroundColor(.orange)) {
+                        TextField("Points (1-10)", text: $viewModel.points)
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(5)
+                        if !viewModel.isValidPoints && !viewModel.points.isEmpty {
+                            Text("Points must be between 1 and 10")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                    }
+
+                    GroupBox(label: Label("Correct Answer", systemImage: "checkmark.circle").foregroundColor(.green)) {
+                        Picker("Select correct option", selection: $viewModel.correctOptionIndex) {
+                            ForEach(0..<4) { index in
+                                Text("Option \(index + 1)").tag(index)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(5)
+                    }
+
+                    if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.red)
                             .font(.caption)
+                            .padding(.horizontal)
                     }
-                }
-                
-                Section {
+
                     Button(action: {
                         Task {
                             await viewModel.createQuestion(userId: userId)
@@ -65,13 +81,18 @@ struct CreateQuestionView: View {
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
                             Text("Save Question")
+                                .fontWeight(.bold)
                                 .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(viewModel.isValidForm ? Color.blue : Color.gray)
                                 .foregroundColor(.white)
+                                .cornerRadius(10)
                         }
                     }
-                    .listRowBackground(!viewModel.isValidForm ? Color.gray : Color.blue)
                     .disabled(!viewModel.isValidForm || viewModel.isLoading)
+                    .padding(.bottom)
                 }
+                .padding(.horizontal)
             }
             .navigationTitle("Create Question")
             .navigationBarItems(trailing: Button("Cancel") {
@@ -80,7 +101,3 @@ struct CreateQuestionView: View {
         }
     }
 }
-
-#Preview {
-    CreateQuestionView()
-} 

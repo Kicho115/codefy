@@ -8,13 +8,15 @@ struct HomeView: View {
     @State private var isUploading = false
     @State private var uploadError: String?
     
+    @StateObject private var questionsViewModel = QuestionsViewModel()
+    
     var body: some View {
         NavigationView {
             VStack {
                 Text("Welcome to Home")
                     .font(.title)
                 
-                // Button to select and upload photo
+                // Botón para seleccionar y subir foto
                 PhotosPicker(selection: $selectedItem,
                            matching: .images,
                            photoLibrary: .shared()) {
@@ -43,7 +45,29 @@ struct HomeView: View {
                         .foregroundColor(.red)
                         .font(.caption)
                 }
-                
+
+                NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
+                    HStack {
+                        Image(systemName: "sun.max.fill")
+                        Text("Pregunta del Día")
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.orange)
+                    .cornerRadius(10)
+                }
+
+                NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
+                    HStack {
+                        Image(systemName: "list.bullet.rectangle")
+                        Text("Ver Preguntas")
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.purple)
+                    .cornerRadius(10)
+                }
+
                 Button(action: { showingCreateQuestion = true }) {
                     HStack {
                         Image(systemName: "plus.circle.fill")
@@ -54,8 +78,24 @@ struct HomeView: View {
                     .background(Color.blue)
                     .cornerRadius(10)
                 }
-                .padding(.bottom)
+                .sheet(isPresented: $showingCreateQuestion) {
+                    CreateQuestionView(questionsViewModel: questionsViewModel)
+                }
+
+
                 
+                
+                NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
+                    HStack {
+                        Image(systemName: "list.bullet.rectangle")
+                        Text("Entrevista Simulada")
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.purple)
+                    .cornerRadius(10)
+                }
+
                 Button(action: signOut) {
                     Text("Sign Out")
                         .foregroundColor(.white)
@@ -65,9 +105,6 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("Home")
-            .sheet(isPresented: $showingCreateQuestion) {
-                CreateQuestionView()
-            }
         }
     }
     
@@ -78,16 +115,13 @@ struct HomeView: View {
             isUploading = true
             uploadError = nil
             
-            // Get the data of the image
             guard let data = try await item.loadTransferable(type: Data.self) else {
                 throw NSError(domain: "HomeView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not load image data"])
             }
             
-            // Upload the image to Storage
             let path = "photos/\(UUID().uuidString).jpg"
             let _ = try await StorageService.shared.uploadData(data, path: path)
             
-            // Clean the state
             selectedItem = nil
             uploadError = nil
         } catch {
@@ -109,4 +143,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
-} 
+}
+
