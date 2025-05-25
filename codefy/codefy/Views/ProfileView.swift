@@ -5,6 +5,7 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedItem: PhotosPickerItem?
     @State private var showingImagePicker = false
+    @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     
     var body: some View {
         NavigationView {
@@ -95,6 +96,21 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal)
                             
+                            
+                            Button(action: signOut) {
+                                HStack {
+                                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                                        .foregroundColor(.red)
+                                    Text("Sign Out")
+                                        .foregroundColor(.red)
+                                    Spacer()
+                                }
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .cornerRadius(12)
+                            }
+                            
+                            
                             Spacer()
                         }
                     }
@@ -115,8 +131,8 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .photosPicker(isPresented: $showingImagePicker,
-                         selection: $selectedItem,
-                         matching: .images)
+                          selection: $selectedItem,
+                          matching: .images)
             .onChange(of: selectedItem) { oldValue, newValue in
                 if let newValue {
                     Task {
@@ -130,6 +146,15 @@ struct ProfileView: View {
         .task {
             await viewModel.loadUserProfile()
             await viewModel.updateLastLogin()
+        }
+    }
+    
+    private func signOut() {
+        do {
+            try FirebaseService.shared.signOut()
+            isLoggedIn = false
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
         }
     }
 }
@@ -162,4 +187,4 @@ struct StatCard: View {
 
 #Preview {
     ProfileView()
-} 
+}
