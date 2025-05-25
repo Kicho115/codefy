@@ -14,6 +14,12 @@ class ProfileViewModel: ObservableObject {
         UserDefaults.standard.string(forKey: "userId")
     }
     
+    var isUserActive: Bool {
+        guard let lastLogin = user?.lastLoginAt else { return false }
+        let tenMinutesAgo = Date().addingTimeInterval(-600) // 10 minutes in seconds
+        return lastLogin > tenMinutesAgo
+    }
+    
     func loadUserProfile() async {
         guard let userId = userId else {
             error = NSError(domain: "ProfileViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])

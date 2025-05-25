@@ -58,13 +58,25 @@ struct ProfileView: View {
                                     .bold()
                                 
                                 HStack {
-                                    Text("Member since \(user.formattedMemberSince)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                    if viewModel.isUserActive {
+                                        HStack(spacing: 4) {
+                                            Circle()
+                                                .fill(Color.green)
+                                                .frame(width: 8, height: 8)
+                                            Text("Active now")
+                                                .font(.subheadline)
+                                                .foregroundColor(.green)
+                                        }
+                                    } else {
+                                        Text("Last login: \(user.formattedLastLogin)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
                                     Text("•")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
-                                    Text("Last login: \(user.formattedLastLogin)")
+                                    Text("Member since \(user.formattedMemberSince)")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
