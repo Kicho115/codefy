@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct QuestionsView: View {
     @ObservedObject var viewModel: QuestionsViewModel
@@ -133,6 +134,11 @@ struct QuestionsView: View {
 
 struct QuestionDetailView: View {
     var question: Question
+    @State private var selectedAnswer: Int? = nil
+    @State private var showFeedback = false
+    @State private var isCorrect = false
+    @State private var isAnswered = false
+    @AppStorage("userId") private var userId: String = ""
     
     var body: some View {
         ScrollView {
@@ -140,18 +146,116 @@ struct QuestionDetailView: View {
                 Text(question.text)
                     .font(.title2)
                     .bold()
-                ForEach(Array(question.options.enumerated()), id: \.offset) { index, option in
+                
+                if isAnswered {
+                    // Show feedback after answering
                     HStack {
-                        Text("\(index + 1). \(option)")
-                        if index == question.correctOptionIndex {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(.green)
-                        }
+                        Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(isCorrect ? .green : .red)
+                            .font(.title)
+                        Text(isCorrect ? "Correct!" : "Incorrect")
+                            .font(.title3)
+                            .foregroundColor(isCorrect ? .green : .red)
                     }
+                    .padding()
+                    .background(isCorrect ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                    .cornerRadius(10)
                 }
+                
+                ForEach(Array(question.options.enumerated()), id: \.offset) { index, option in
+                    Button(action: {
+                        if !isAnswered {
+                            selectedAnswer = index
+                            checkAnswer(selectedIndex: index)
+                        }
+                    }) {
+                        HStack {
+                            Text("\(index + 1). \(option)")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedAnswer == index {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.blue)
+                            }
+                            if isAnswered && index == question.correctOptionIndex {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(selectedAnswer == index ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                        )
+                    }
+                    .disabled(isAnswered)
+                }
+                
+                if isAnswered {
+                    Text("Points: \(question.points)")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                        .padding(.top)
+                }
+                
                 Spacer()
             }
             .padding()
+        }
+    }
+    
+    private func checkAnswer(selectedIndex: Int) {
+        isAnswered = true
+        isCorrect = selectedIndex == question.correctOptionIndex
+        
+        if isCorrect {
+            Task {
+                await updateUserStats()
+            }
+        }
+    }
+    
+    private func updateUserStats() async {
+        do {
+            // Get current user data
+            let userData = try await FirebaseService.shared.getUserData(userId: userId)
+            guard var userData = userData else { return }
+            
+            // Update stats
+            userData["totalQuestionsAnswered"] = (userData["totalQuestionsAnswered"] as? Int ?? 0) + 1
+            userData["correctAnswers"] = (userData["correctAnswers"] as? Int ?? 0) + 1
+            userData["points"] = (userData["points"] as? Int ?? 0) + question.points
+            
+            // Update completed questions
+            var completedQuestions = userData["completedQuestions"] as? [String] ?? []
+            if !completedQuestions.contains(question.id) {
+                completedQuestions.append(question.id)
+                userData["completedQuestions"] = completedQuestions
+            }
+            
+            // Update daily streak if this is the first question answered today
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let lastLogin = (userData["lastLoginAt"] as? Timestamp)?.dateValue() ?? Date()
+            let lastLoginDay = calendar.startOfDay(for: lastLogin)
+            
+            if calendar.isDate(today, inSameDayAs: lastLoginDay) {
+                // Same day, no need to update streak
+            } else if calendar.isDateInYesterday(lastLoginDay) {
+                // Yesterday, increment streak
+                userData["dailyQuestionStreak"] = (userData["dailyQuestionStreak"] as? Int ?? 0) + 1
+            } else {
+                // More than a day ago, reset streak
+                userData["dailyQuestionStreak"] = 1
+            }
+            
+            // Update last login time
+            userData["lastLoginAt"] = Timestamp(date: Date())
+            
+            // Save updated user data
+            try await FirebaseService.shared.saveUserData(userId: userId, data: userData)
+        } catch {
+            print("Error updating user stats: \(error)")
         }
     }
 }
