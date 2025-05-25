@@ -14,7 +14,7 @@ struct DailyQuestionView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Pregunta del Día")
+                Text("Daily Question")
                     .font(.largeTitle)
                     .bold()
                 
@@ -24,7 +24,7 @@ struct DailyQuestionView: View {
                         .padding()
                     
                     if viewModel.alreadyAnsweredToday {
-                        Text("Ya contestaste, vuelve mañana.")
+                        Text("You have already answered today. Come back tomorrow!")
                             .foregroundColor(.red)
                             .font(.headline)
                             .padding()
@@ -45,17 +45,17 @@ struct DailyQuestionView: View {
                     
                     if let message = feedbackMessage {
                         Text(message)
-                            .foregroundColor(message == "Correcto!" ? .green : .red)
+                            .foregroundColor(message == "Correct!" ? .green : .red)
                             .font(.headline)
                             .padding()
                     }
                     
-                    Text("Categoría: \(question.category.rawValue)")
+                    Text("Category: \(question.category.rawValue)")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                         .padding(.top, 10)
                 } else {
-                    ProgressView("Cargando pregunta...")
+                    ProgressView("Loading question...")
                 }
             }
             .padding()
@@ -65,9 +65,9 @@ struct DailyQuestionView: View {
     private func checkAnswer(selectedIndex: Int, correctIndex: Int) {
         answered = true
         if selectedIndex == correctIndex {
-            feedbackMessage = "Correcto!"
+            feedbackMessage = "Correct!"
         } else {
-            feedbackMessage = "Incorrecto"
+            feedbackMessage = "Incorrect"
         }
         viewModel.markQuestionAsAnswered()
     }

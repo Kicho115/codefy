@@ -14,7 +14,7 @@ struct InterviewModeSelection: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Text("Selecciona Categorías")
+            Text("Select Categories")
                 .font(.title)
                 .bold()
                 .padding(.bottom, 8)
@@ -42,7 +42,7 @@ struct InterviewModeSelection: View {
                 .foregroundColor(.primary)
             }
             
-            Button("Iniciar Entrevista") {
+            Button("Start Mock Interview") {
                 startInterview = true
             }
             .disabled(selectedCategories.isEmpty)

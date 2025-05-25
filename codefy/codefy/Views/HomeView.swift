@@ -11,11 +11,11 @@ struct HomeView: View {
                 VStack(spacing: 20) {
                     // Header Section
                     VStack(spacing: 8) {
-                        Text("Bienvenido a Codefy")
+                        Text("Welcome to Codefy")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.primary)
                         
-                        Text("Tu compañero de estudio")
+                        Text("Your study partner")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -29,7 +29,7 @@ struct HomeView: View {
                         // Daily Question Card
                         NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
                             ActionCard(
-                                title: "Pregunta del Día",
+                                title: "Daily Question",
                                 icon: "sun.max.fill",
                                 color: .orange
                             )
@@ -38,7 +38,7 @@ struct HomeView: View {
                         // Questions List Card
                         NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
                             ActionCard(
-                                title: "Ver Preguntas",
+                                title: "See All Questions",
                                 icon: "list.bullet.rectangle",
                                 color: .purple
                             )
@@ -47,7 +47,7 @@ struct HomeView: View {
                         // Create Question Card
                         Button(action: { showingCreateQuestion = true }) {
                             ActionCard(
-                                title: "Crear Pregunta",
+                                title: "Create Question",
                                 icon: "plus.circle.fill",
                                 color: .blue
                             )
@@ -59,7 +59,7 @@ struct HomeView: View {
                         // Interview Mode Card
                         NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
                             ActionCard(
-                                title: "Entrevista Simulada",
+                                title: "Mock Interview",
                                 icon: "person.2.fill",
                                 color: .green
                             )

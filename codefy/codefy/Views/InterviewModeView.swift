@@ -22,13 +22,13 @@ struct InterviewModeView: View {
     var body: some View {
         VStack(spacing: 20) {
             if showResults {
-                Text("¡Entrevista Terminada!")
+                Text("Mock Interview Finished!")
                     .font(.title)
                     .bold()
-                Text("Correctas: \(correctAnswers) de \(selectedQuestions.count)")
-                Text("Puntuación: \(score) de \(totalPoints())")
+                Text("Correct: \(correctAnswers) of \(selectedQuestions.count)")
+                Text("Score: \(score) of \(totalPoints())")
                 
-                Button("Reiniciar") {
+                Button("Restart") {
                     resetInterview()
                 }
                 .padding()
@@ -36,7 +36,7 @@ struct InterviewModeView: View {
                 .foregroundColor(.white)
                 .cornerRadius(10)
                 
-                Button("Nueva Entrevista") {
+                Button("New Interview") {
                     presentationMode.wrappedValue.dismiss()
                 }
                 .padding()
@@ -64,10 +64,10 @@ struct InterviewModeView: View {
                             .cornerRadius(10)
                     }
                 }
-                Text("Tiempo restante: \(timeRemaining) s")
+                Text("Time remaining: \(timeRemaining) s")
                     .foregroundColor(.red)
             } else {
-                Text("Cargando preguntas...")
+                Text("Loading questions...")
             }
         }
         .padding()
