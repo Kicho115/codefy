@@ -1,143 +1,102 @@
 import SwiftUI
-import PhotosUI
 
 struct HomeView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @State private var showingCreateQuestion = false
-    @State private var selectedItem: PhotosPickerItem?
-    @State private var isUploading = false
-    @State private var uploadError: String?
-    
     @StateObject private var questionsViewModel = QuestionsViewModel()
     
     var body: some View {
         NavigationView {
-            VStack {
-                Text("Welcome to Home")
-                    .font(.title)
-                
-                // Botón para seleccionar y subir foto
-                PhotosPicker(selection: $selectedItem,
-                           matching: .images,
-                           photoLibrary: .shared()) {
-                    HStack {
-                        Image(systemName: "photo.fill")
-                        Text("Upload Photo")
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header Section
+                    VStack(spacing: 8) {
+                        Text("Bienvenido a Codefy")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.primary)
+                        
+                        Text("Tu compañero de estudio")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.green)
-                    .cornerRadius(10)
-                }
-                .onChange(of: selectedItem) { newItem in
-                    Task {
-                        await uploadPhoto(newItem)
+                    .padding(.top, 20)
+                    
+                    // Main Actions Grid
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 16),
+                        GridItem(.flexible(), spacing: 16)
+                    ], spacing: 16) {
+                        // Daily Question Card
+                        NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
+                            ActionCard(
+                                title: "Pregunta del Día",
+                                icon: "sun.max.fill",
+                                color: .orange
+                            )
+                        }
+                        
+                        // Questions List Card
+                        NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
+                            ActionCard(
+                                title: "Ver Preguntas",
+                                icon: "list.bullet.rectangle",
+                                color: .purple
+                            )
+                        }
+                        
+                        // Create Question Card
+                        Button(action: { showingCreateQuestion = true }) {
+                            ActionCard(
+                                title: "Crear Pregunta",
+                                icon: "plus.circle.fill",
+                                color: .blue
+                            )
+                        }
+                        .sheet(isPresented: $showingCreateQuestion) {
+                            CreateQuestionView(questionsViewModel: questionsViewModel)
+                        }
+                        
+                        // Interview Mode Card
+                        NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
+                            ActionCard(
+                                title: "Entrevista Simulada",
+                                icon: "person.2.fill",
+                                color: .green
+                            )
+                        }
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.bottom)
-                
-                if isUploading {
-                    ProgressView("Uploading...")
-                }
-                
-                if let error = uploadError {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-
-                NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
-                    HStack {
-                        Image(systemName: "sun.max.fill")
-                        Text("Pregunta del Día")
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.orange)
-                    .cornerRadius(10)
-                }
-
-                NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
-                    HStack {
-                        Image(systemName: "list.bullet.rectangle")
-                        Text("Ver Preguntas")
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.purple)
-                    .cornerRadius(10)
-                }
-
-                Button(action: { showingCreateQuestion = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Create Question")
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-                }
-                .sheet(isPresented: $showingCreateQuestion) {
-                    CreateQuestionView(questionsViewModel: questionsViewModel)
-                }
-
-
-                
-                
-                NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
-                    HStack {
-                        Image(systemName: "list.bullet.rectangle")
-                        Text("Entrevista Simulada")
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.purple)
-                    .cornerRadius(10)
-                }
-
-                Button(action: signOut) {
-                    Text("Sign Out")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
-                }
+                .padding(.bottom, 30)
             }
-            .navigationTitle("Home")
+            .navigationBarHidden(true)
+            .background(Color(.systemGroupedBackground))
         }
     }
+}
+
+// MARK: - Supporting Views
+struct ActionCard: View {
+    let title: String
+    let icon: String
+    let color: Color
     
-    private func uploadPhoto(_ item: PhotosPickerItem?) async {
-        guard let item = item else { return }
-        
-        do {
-            isUploading = true
-            uploadError = nil
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 30))
+                .foregroundColor(.white)
             
-            guard let data = try await item.loadTransferable(type: Data.self) else {
-                throw NSError(domain: "HomeView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not load image data"])
-            }
-            
-            let path = "photos/\(UUID().uuidString).jpg"
-            let _ = try await StorageService.shared.uploadData(data, path: path)
-            
-            selectedItem = nil
-            uploadError = nil
-        } catch {
-            uploadError = "Error uploading photo: \(error.localizedDescription)"
+            Text(title)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
         }
-        
-        isUploading = false
-    }
-    
-    private func signOut() {
-        do {
-            try FirebaseService.shared.signOut()
-            isLoggedIn = false
-        } catch {
-            print("Error signing out: \(error.localizedDescription)")
-        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 120)
+        .background(color)
+        .cornerRadius(16)
+        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
     }
 }
 
