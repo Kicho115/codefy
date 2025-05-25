@@ -14,12 +14,12 @@ struct QuestionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Preguntas")
+                Text("Questions")
                     .font(.largeTitle)
                     .bold()
                     .padding(.horizontal)
 
-                Text("Escoge tu categoría")
+                Text("Select your category")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
                     .foregroundColor(.gray)
                     .padding(.horizontal)
@@ -59,7 +59,7 @@ struct QuestionsView: View {
                         .foregroundColor(.red)
                         .padding()
                 } else if let category = selectedCategory, let questions = viewModel.groupedQuestions[category] {
-                    Text("Preguntas de \(titleForCategory(category))")
+                    Text("Questions in \(titleForCategory(category))")
                         .font(.title3)
                         .bold()
                         .padding(.horizontal)
@@ -74,7 +74,7 @@ struct QuestionsView: View {
                                             .foregroundColor(.primary)
                                             .lineLimit(2)
 
-                                        Text("Puntos: \(question.points)")
+                                        Text("Points: \(question.points)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
