@@ -13,49 +13,85 @@ struct InterviewModeSelection: View {
     @State private var startInterview = false
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Select Categories")
-                .font(.title)
-                .bold()
-                .padding(.bottom, 8)
+        ZStack {
+            Color.spaceCadet
+                .ignoresSafeArea()
             
-            ForEach(Category.allCases, id: \.self) { category in
+            VStack(spacing: 24) {
+                Text("Select Categories")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.top, 32)
+                
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(Category.allCases, id: \.self) { category in
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    if selectedCategories.contains(category) {
+                                        selectedCategories.remove(category)
+                                    } else {
+                                        selectedCategories.insert(category)
+                                    }
+                                }
+                            }) {
+                                HStack {
+                                    Text(category.rawValue)
+                                        .font(.system(size: 17, weight: .medium, design: .rounded))
+                                    Spacer()
+                                    if selectedCategories.contains(category) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.turquoise)
+                                            .imageScale(.large)
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white.opacity(0.1))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(selectedCategories.contains(category) ? Color.turquoise : Color.clear, lineWidth: 2)
+                                )
+                            }
+                            .foregroundColor(.white)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                
+                Spacer()
+                
                 Button(action: {
-                    if selectedCategories.contains(category) {
-                        selectedCategories.remove(category)
-                    } else {
-                        selectedCategories.insert(category)
+                    withAnimation {
+                        startInterview = true
                     }
                 }) {
                     HStack {
-                        Text(category.rawValue)
-                        Spacer()
-                        if selectedCategories.contains(category) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        }
+                        Text("Start Mock Interview")
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        Image(systemName: "arrow.right.circle.fill")
+                            .imageScale(.large)
                     }
-                    .padding()
-                    .background(Color(hex: "F2F2F7"))
-                    .cornerRadius(10)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(selectedCategories.isEmpty ? Color.gray.opacity(0.5) : Color.turquoise)
+                    )
+                    .foregroundColor(.white)
                 }
-                .foregroundColor(.primary)
+                .disabled(selectedCategories.isEmpty)
+                .padding(.horizontal)
+                .padding(.bottom, 32)
             }
-            
-            Button("Start Mock Interview") {
-                startInterview = true
-            }
-            .disabled(selectedCategories.isEmpty)
-            .padding()
-            .background(selectedCategories.isEmpty ? Color.gray : Color(hex: "34C759"))
-            .foregroundColor(.white)
-            .cornerRadius(10)
             
             NavigationLink(
                 destination: InterviewModeView(questionsViewModel: questionsViewModel, selectedCategories: Array(selectedCategories)),
                 isActive: $startInterview
             ) { EmptyView() }
         }
-        .padding()
     }
 }

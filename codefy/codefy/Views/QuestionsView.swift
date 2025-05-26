@@ -11,102 +11,88 @@ import FirebaseFirestore
 struct QuestionsView: View {
     @ObservedObject var viewModel: QuestionsViewModel
     @State private var selectedCategory: Category? = nil
-    @State private var isExpanded = false
-    
-    // Custom colors
-    private let spaceCadet = Color(hex: "1A1F36")
-    private let turquoise = Color(hex: "5EEAD4")
-    private let tropicalIndigo = Color(hex: "818CF8")
-    private let naplesYellow = Color(hex: "FFE45E")
-    private let white = Color.white
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("Questions")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundColor(white)
+                    .font(.largeTitle)
+                    .bold()
                     .padding(.horizontal)
-                    .padding(.top)
 
                 Text("Select your category")
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(white.opacity(0.8))
+                    .foregroundColor(.gray)
                     .padding(.horizontal)
 
-                VStack(spacing: 16) {
-                    LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: 100, maximum: 120), spacing: 16)
-                    ], spacing: 16) {
-                        ForEach(Array(Category.allCases.prefix(isExpanded ? Category.allCases.count : 3)), id: \.self) { category in
-                            CategoryButton(
-                                category: category,
-                                isSelected: selectedCategory == category,
-                                icon: iconForCategory(category),
-                                title: titleForCategory(category),
-                                color: colorForCategory(category),
-                                action: {
-                                    withAnimation(.spring()) {
-                                        selectedCategory = category
-                                    }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(Category.allCases, id: \.self) { category in
+                            Button(action: {
+                                selectedCategory = category
+                            }) {
+                                VStack {
+                                    Image(systemName: iconForCategory(category))
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .background(colorForCategory(category))
+                                        .clipShape(Circle())
+
+                                    Text(titleForCategory(category))
+                                        .font(.caption)
+                                        .foregroundColor(.primary)
                                 }
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    if Category.allCases.count > 3 {
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                isExpanded.toggle()
+                                .padding(8)
+                                .background(selectedCategory == category ? colorForCategory(category).opacity(0.3) : Color.clear)
+                                .cornerRadius(12)
                             }
-                        }) {
-                            Text(isExpanded ? "Show Less" : "Show More")
-                                .font(.system(size: 16, weight: .medium, design: .rounded))
-                                .foregroundColor(tropicalIndigo)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
-                                .background(tropicalIndigo.opacity(0.1))
-                                .cornerRadius(20)
                         }
-                    }
+                    }.padding(.horizontal)
                 }
 
                 if viewModel.isLoading {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: turquoise))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding()
                 } else if !viewModel.errorMessage.isEmpty {
                     Text(viewModel.errorMessage)
-                        .foregroundColor(naplesYellow)
+                        .foregroundColor(.red)
                         .padding()
-                        .background(naplesYellow.opacity(0.1))
-                        .cornerRadius(12)
+                } else if let category = selectedCategory, let questions = viewModel.groupedQuestions[category] {
+                    Text("Questions in \(titleForCategory(category))")
+                        .font(.title3)
+                        .bold()
                         .padding(.horizontal)
-                } else {
-                    VStack(alignment: .leading, spacing: 16) {
-                        if let category = selectedCategory {
-                            Text("Questions in \(titleForCategory(category))")
-                                .font(.title3)
-                                .bold()
-                                .foregroundColor(white)
-                                .padding(.horizontal)
-                        }
 
-                        LazyVStack(spacing: 12) {
-                            ForEach(selectedCategory == nil ? viewModel.questions : viewModel.groupedQuestions[selectedCategory!] ?? []) { question in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(questions) { question in
                                 NavigationLink(destination: QuestionDetailView(question: question)) {
-                                    QuestionCard(question: question)
+                                    VStack(alignment: .leading) {
+                                        Text(question.text)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                            .lineLimit(2)
+
+                                        Text("Points: \(question.points)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .frame(width: 200, height: 120)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(12)
                                 }
                             }
                         }
                         .padding(.horizontal)
                     }
+                } else {
+                    Spacer().frame(height: 200)
                 }
             }
         }
-        .background(spaceCadet)
         .refreshable {
             await viewModel.fetchQuestions()
         }
@@ -136,43 +122,12 @@ struct QuestionsView: View {
     
     private func colorForCategory(_ category: Category) -> Color {
         switch category {
-        case .oop: return turquoise
-        case .webdev: return tropicalIndigo
-        case .humanResources: return naplesYellow
-        case .structure: return turquoise
-        case .uncategorized: return tropicalIndigo
-        case .swift: return naplesYellow
-        }
-    }
-}
-
-struct CategoryButton: View {
-    let category: Category
-    let isSelected: Bool
-    let icon: String
-    let title: String
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(color)
-                    .clipShape(Circle())
-                
-                Text(title)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(isSelected ? color.opacity(0.3) : Color.clear)
-            .cornerRadius(16)
+        case .oop: return .blue
+        case .webdev: return .green
+        case .humanResources: return .orange
+        case .structure: return .purple
+        case .uncategorized: return .gray
+        case .swift: return .red
         }
     }
 }
