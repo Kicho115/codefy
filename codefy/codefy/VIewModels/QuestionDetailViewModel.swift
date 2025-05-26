@@ -64,6 +64,18 @@ class QuestionDetailViewModel: ObservableObject {
             // Update stats
             userData["totalQuestionsAnswered"] = (userData["totalQuestionsAnswered"] as? Int ?? 0) + 1
             
+            // Update streak and stats based on correctness
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            
+            // Get last activity date from activity history
+            let activityHistory = userData["activityHistory"] as? [[String: Any]] ?? []
+            let lastActivityDate = activityHistory
+                .compactMap { ($0["date"] as? Timestamp)?.dateValue() }
+                .sorted()
+                .last ?? Date()
+            let lastActivityDay = calendar.startOfDay(for: lastActivityDate)
+            
             if isCorrect {
                 userData["correctAnswers"] = (userData["correctAnswers"] as? Int ?? 0) + 1
                 userData["points"] = (userData["points"] as? Int ?? 0) + question.points
@@ -75,38 +87,37 @@ class QuestionDetailViewModel: ObservableObject {
                     userData["completedQuestions"] = completedQuestions
                 }
                 
-                // Update daily streak if this is the first question answered today
-                let calendar = Calendar.current
-                let today = calendar.startOfDay(for: Date())
-                let lastLogin = (userData["lastLoginAt"] as? Timestamp)?.dateValue() ?? Date()
-                let lastLoginDay = calendar.startOfDay(for: lastLogin)
-                
-                if calendar.isDate(today, inSameDayAs: lastLoginDay) {
+                // Update streak
+                var currentStreak = userData["streak"] as? Int ?? 0
+                if calendar.isDate(today, inSameDayAs: lastActivityDay) {
                     // Same day, no need to update streak
-                } else if calendar.isDateInYesterday(lastLoginDay) {
+                } else if calendar.isDateInYesterday(lastActivityDay) {
                     // Yesterday, increment streak
-                    userData["dailyQuestionStreak"] = (userData["dailyQuestionStreak"] as? Int ?? 0) + 1
+                    currentStreak += 1
                 } else {
                     // More than a day ago, reset streak
-                    userData["dailyQuestionStreak"] = 1
+                    currentStreak = 1
                 }
+                userData["streak"] = currentStreak
             }
             
             // Update activity history
-            var activityHistory = userData["activityHistory"] as? [[String: Any]] ?? []
-            activityHistory.append([
+            var updatedActivityHistory = activityHistory
+            updatedActivityHistory.append([
                 "date": Timestamp(date: Date()),
-                "type": "question",
+                "type": question.isDailyQuestion == true ? "daily" : "question",
                 "questionId": question.id,
                 "result": isCorrect ? "correct" : "incorrect"
             ])
-            userData["activityHistory"] = activityHistory
+            userData["activityHistory"] = updatedActivityHistory
             
             // Update last login time
             userData["lastLoginAt"] = Timestamp(date: Date())
             
             // Save updated user data
             try await FirebaseService.shared.saveUserData(userId: userId, data: userData)
+            
+            print("Updated user stats - Streak: \(userData["streak"] ?? 0)")
         } catch {
             print("Error updating user stats: \(error)")
         }

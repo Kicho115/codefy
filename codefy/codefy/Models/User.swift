@@ -16,9 +16,7 @@ struct User: Codable, Identifiable {
     var totalQuestionsAnswered: Int
     var correctAnswers: Int
     var points: Int
-    var dailyQuestionStreak: Int // Consecutive days with daily questions answered
     var rank: Int // Rank of the user
-
     
     // Preferences
     var favoriteQuestions: [String] // Id's of favorite questions
@@ -26,7 +24,6 @@ struct User: Codable, Identifiable {
     
     // Notification settings
     var notificationSettings: NotificationSettings
-    
     
     // History
     var activityHistory: [ActivityRecord]
@@ -133,7 +130,6 @@ extension User {
         data["totalQuestionsAnswered"] = totalQuestionsAnswered
         data["correctAnswers"] = correctAnswers
         data["points"] = points
-        data["dailyQuestionStreak"] = dailyQuestionStreak
         data["rank"] = rank
         
         // Preferences

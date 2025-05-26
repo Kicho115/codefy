@@ -41,6 +41,7 @@ struct Question: Identifiable, Codable {
     var createdAt: Date
     var createdBy: String
     var category: Category
+    var isDailyQuestion: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -51,6 +52,7 @@ struct Question: Identifiable, Codable {
         case createdAt
         case createdBy
         case category
+        case isDailyQuestion
     }
     
     init(id: String = UUID().uuidString,
@@ -60,7 +62,8 @@ struct Question: Identifiable, Codable {
          points: Int,
          createdAt: Date = Date(),
          createdBy: String,
-         category: Category = .uncategorized) {
+         category: Category = .uncategorized,
+         isDailyQuestion: Bool? = nil) {
         self.id = id
         self.text = text
         self.options = options
@@ -69,6 +72,7 @@ struct Question: Identifiable, Codable {
         self.createdAt = createdAt
         self.createdBy = createdBy
         self.category = category
+        self.isDailyQuestion = isDailyQuestion
     }
     
     init(from decoder: Decoder) throws {
@@ -95,6 +99,9 @@ struct Question: Identifiable, Codable {
         } else {
             self.category = .uncategorized
         }
+        
+        // Handle isDailyQuestion decoding
+        isDailyQuestion = try? container.decode(Bool.self, forKey: .isDailyQuestion)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -108,5 +115,8 @@ struct Question: Identifiable, Codable {
         try container.encode(createdBy, forKey: .createdBy)
         try container.encode(Timestamp(date: createdAt), forKey: .createdAt)
         try container.encode(category.rawValue, forKey: .category)
+        if let isDailyQuestion = isDailyQuestion {
+            try container.encode(isDailyQuestion, forKey: .isDailyQuestion)
+        }
     }
 } 
