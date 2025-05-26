@@ -7,99 +7,104 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
-                // Header Section
-                VStack(spacing: 8) {
-                    Text("Welcome to Codefy")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.primary)
-                    
-                    Text("Your study partner")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top, 20)
+            ZStack {
+                Color.spaceCadet.ignoresSafeArea()
                 
-                // Main Actions Grid
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 16),
-                    GridItem(.flexible(), spacing: 16)
-                ], spacing: 16) {
-                    // Daily Question Card
-                    NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
-                        ActionCard(
-                            title: "Daily Question",
-                            icon: "sun.max.fill",
-                            color: .orange
-                        )
+                VStack(spacing: 30) {
+                    // Header Section
+                    VStack(spacing: 8) {
+                        Text("Welcome to Codefy")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(Color.white)
+                        
+                        Text("Your study partner")
+                            .font(.subheadline)
+                            .foregroundColor(Color.tropicalIndigo)
                     }
+                    .padding(.top, 20)
                     
-                    // Questions List Card
-                    NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
-                        ActionCard(
-                            title: "See All Questions",
-                            icon: "list.bullet.rectangle",
-                            color: .purple
-                        )
-                    }
-                    
-                    // Create Question Card
-                    Button(action: { showingCreateQuestion = true }) {
-                        ActionCard(
-                            title: "Create Question",
-                            icon: "plus.circle.fill",
-                            color: .blue
-                        )
-                    }
-                    .sheet(isPresented: $showingCreateQuestion) {
-                        CreateQuestionView(questionsViewModel: questionsViewModel)
-                    }
-                    
-                    // Interview Mode Card
-                    NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
-                        ActionCard(
-                            title: "Mock Interview",
-                            icon: "person.2.fill",
-                            color: .green
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Recent Questions Feed
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Recent Questions")
-                        .font(.title2)
-                        .bold()
-                        .padding(.horizontal)
-                    
-                    ScrollView {
-                        if questionsViewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if !questionsViewModel.errorMessage.isEmpty {
-                            Text(questionsViewModel.errorMessage)
-                                .foregroundColor(.red)
-                                .padding()
-                        } else {
-                            LazyVStack(spacing: 12) {
-                                ForEach(questionsViewModel.questions.prefix(10)) { question in
-                                    NavigationLink(destination: QuestionDetailView(question: question)) {
-                                        QuestionCard(question: question)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
+                    // Main Actions Grid
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 16),
+                        GridItem(.flexible(), spacing: 16)
+                    ], spacing: 16) {
+                        // Daily Question Card
+                        NavigationLink(destination: DailyQuestionView(viewModel: DailyQuestionViewModel(questionsViewModel: questionsViewModel))) {
+                            ActionCard(
+                                title: "Daily Question",
+                                icon: "sun.max.fill",
+                                color: .orange
+                            )
+                        }
+                        
+                        // Questions List Card
+                        NavigationLink(destination: QuestionsView(viewModel: questionsViewModel)) {
+                            ActionCard(
+                                title: "See All Questions",
+                                icon: "list.bullet.rectangle",
+                                color: .purple
+                            )
+                        }
+                        
+                        // Create Question Card
+                        Button(action: { showingCreateQuestion = true }) {
+                            ActionCard(
+                                title: "Create Question",
+                                icon: "plus.circle.fill",
+                                color: .blue
+                            )
+                        }
+                        .sheet(isPresented: $showingCreateQuestion) {
+                            CreateQuestionView(questionsViewModel: questionsViewModel)
+                        }
+                        
+                        // Interview Mode Card
+                        NavigationLink(destination: InterviewModeSelection(questionsViewModel: questionsViewModel)) {
+                            ActionCard(
+                                title: "Mock Interview",
+                                icon: "person.2.fill",
+                                color: .green
+                            )
                         }
                     }
-                    .refreshable {
-                        await questionsViewModel.fetchQuestions()
+                    .padding(.horizontal)
+                    
+                    // Recent Questions Feed
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Recent Questions")
+                            .font(.title2)
+                            .bold()
+                            .foregroundColor(Color.white)
+                            .padding(.horizontal)
+                        
+                        ScrollView {
+                            if questionsViewModel.isLoading {
+                                ProgressView()
+                                    .tint(Color.turquoise)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            } else if !questionsViewModel.errorMessage.isEmpty {
+                                Text(questionsViewModel.errorMessage)
+                                    .foregroundColor(Color.naplesYellow)
+                                    .padding()
+                            } else {
+                                LazyVStack(spacing: 12) {
+                                    ForEach(questionsViewModel.questions.prefix(10)) { question in
+                                        NavigationLink(destination: QuestionDetailView(question: question)) {
+                                            QuestionCard(question: question)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                        .refreshable {
+                            await questionsViewModel.fetchQuestions()
+                        }
                     }
                 }
             }
             .navigationBarHidden(true)
-            .background(Color(.systemGroupedBackground))
         }
     }
 }
@@ -114,11 +119,11 @@ struct ActionCard: View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 30))
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             
             Text(title)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -136,7 +141,7 @@ struct QuestionCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(question.text)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(Color.white)
                 .lineLimit(2)
             
             HStack {
@@ -152,13 +157,16 @@ struct QuestionCard: View {
                 
                 Text("\(question.points) pts")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.turquoise)
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.spaceCadet.opacity(0.5))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.tropicalIndigo.opacity(0.2), lineWidth: 1)
+        )
     }
     
     private func categoryColor(_ category: Category) -> Color {
