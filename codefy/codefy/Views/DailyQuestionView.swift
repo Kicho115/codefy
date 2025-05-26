@@ -13,52 +13,103 @@ struct DailyQuestionView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                Text("Daily Question")
-                    .font(.largeTitle)
-                    .bold()
+            ZStack {
+                Color.spaceCadet
+                    .ignoresSafeArea()
                 
-                if let question = viewModel.todayQuestion {
-                    Text(question.text)
-                        .font(.title3)
-                        .padding()
-                    
-                    if viewModel.alreadyAnsweredToday {
-                        Text("You have already answered today. Come back tomorrow!")
-                            .foregroundColor(.red)
-                            .font(.headline)
-                            .padding()
-                    } else {
-                        ForEach(0..<question.options.count, id: \.self) { index in
-                            Button(action: {
-                                checkAnswer(selectedIndex: index, correctIndex: question.correctOptionIndex)
-                            }) {
-                                Text(question.options[index])
+                ScrollView {
+                    VStack(spacing: 24) {
+                        Text("Daily Question")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .padding(.top, 20)
+                        
+                        if let question = viewModel.todayQuestion {
+                            VStack(spacing: 16) {
+                                Text(question.text)
+                                    .font(.system(size: 20, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                                
+                                if viewModel.alreadyAnsweredToday {
+                                    HStack {
+                                        Image(systemName: "clock.fill")
+                                            .foregroundColor(.naplesYellow)
+                                        Text("You have already answered today. Come back tomorrow!")
+                                            .foregroundColor(.naplesYellow)
+                                            .font(.headline)
+                                    }
                                     .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.blue.opacity(0.2))
-                                    .cornerRadius(10)
+                                    .background(Color.naplesYellow.opacity(0.1))
+                                    .cornerRadius(12)
+                                } else {
+                                    VStack(spacing: 12) {
+                                        ForEach(0..<question.options.count, id: \.self) { index in
+                                            Button(action: {
+                                                checkAnswer(selectedIndex: index, correctIndex: question.correctOptionIndex)
+                                            }) {
+                                                HStack {
+                                                    Text(question.options[index])
+                                                        .font(.system(size: 17, weight: .medium, design: .rounded))
+                                                        .foregroundColor(.spaceCadet)
+                                                        .multilineTextAlignment(.leading)
+                                                    
+                                                    Spacer()
+                                                    
+                                                    if answered {
+                                                        Image(systemName: index == question.correctOptionIndex ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                                            .foregroundColor(index == question.correctOptionIndex ? .green : .red)
+                                                    }
+                                                }
+                                                .padding()
+                                                .frame(maxWidth: .infinity)
+                                                .background(answered ? 
+                                                    (index == question.correctOptionIndex ? Color.green.opacity(0.2) : Color.red.opacity(0.2)) :
+                                                    Color.turquoise)
+                                                .cornerRadius(12)
+                                            }
+                                            .disabled(answered)
+                                        }
+                                    }
+                                }
+                                
+                                if let message = feedbackMessage {
+                                    Text(message)
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundColor(message == "Correct!" ? .green : .red)
+                                        .padding()
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(message == "Correct!" ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                                        )
+                                }
+                                
+                                HStack {
+                                    Image(systemName: "tag.fill")
+                                        .foregroundColor(.tropicalIndigo)
+                                    Text(question.category.rawValue)
+                                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                                        .foregroundColor(.tropicalIndigo)
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(Color.tropicalIndigo.opacity(0.1))
+                                .cornerRadius(8)
                             }
-                            .disabled(answered) // Desactiva botones tras contestar
+                            .padding()
+                            .background(Color.white.opacity(0.05))
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                        } else {
+                            ProgressView("Loading question...")
+                                .foregroundColor(.white)
                         }
                     }
-                    
-                    if let message = feedbackMessage {
-                        Text(message)
-                            .foregroundColor(message == "Correct!" ? .green : .red)
-                            .font(.headline)
-                            .padding()
-                    }
-                    
-                    Text("Category: \(question.category.rawValue)")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .padding(.top, 10)
-                } else {
-                    ProgressView("Loading question...")
+                    .padding(.bottom, 20)
                 }
             }
-            .padding()
+            .navigationBarHidden(true)
         }
     }
     
