@@ -16,19 +16,20 @@ struct QuestionDetailView: View {
                 Text(question.text)
                     .font(.title2)
                     .bold()
+                    .foregroundColor(.white)
                 
                 if viewModel.isAnswered || viewModel.wasPreviouslyAnswered {
                     // Show feedback after answering or for previously answered questions
                     HStack {
                         Image(systemName: (viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .foregroundColor((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? .green : .red)
+                            .foregroundColor((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? .turquoise : .naplesYellow)
                             .font(.title)
                         Text((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? "Correct!" : "Incorrect")
                             .font(.title3)
-                            .foregroundColor((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? .green : .red)
+                            .foregroundColor((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? .turquoise : .naplesYellow)
                     }
                     .padding()
-                    .background((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                    .background((viewModel.isCorrect || viewModel.previousAnswerWasCorrect) ? Color.turquoise.opacity(0.1) : Color.naplesYellow.opacity(0.1))
                     .cornerRadius(10)
                 }
                 
@@ -41,21 +42,21 @@ struct QuestionDetailView: View {
                     }) {
                         HStack {
                             Text("\(index + 1). \(option)")
-                                .foregroundColor(.primary)
+                                .foregroundColor(.white)
                             Spacer()
                             if viewModel.selectedAnswer == index {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.tropicalIndigo)
                             }
                             if (viewModel.isAnswered || viewModel.wasPreviouslyAnswered) && index == question.correctOptionIndex {
                                 Image(systemName: "checkmark.seal.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(.turquoise)
                             }
                         }
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(viewModel.selectedAnswer == index ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                                .fill(viewModel.selectedAnswer == index ? Color.tropicalIndigo.opacity(0.2) : Color.tropicalIndigo.opacity(0.1))
                         )
                     }
                     .disabled(viewModel.isAnswered || viewModel.wasPreviouslyAnswered)
@@ -64,7 +65,7 @@ struct QuestionDetailView: View {
                 if viewModel.isAnswered || viewModel.wasPreviouslyAnswered {
                     Text("Points: \(question.points)")
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.7))
                         .padding(.top)
                 }
                 
@@ -72,6 +73,7 @@ struct QuestionDetailView: View {
             }
             .padding()
         }
+        .background(Color.spaceCadet)
         .task {
             await viewModel.checkIfQuestionWasAnswered()
         }

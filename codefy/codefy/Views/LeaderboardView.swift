@@ -102,13 +102,13 @@ struct LeaderboardRow: View {
     private var rankColor: Color {
         switch rank {
         case 1:
-            return .naplesYellow
+            return .gold
         case 2:
-            return .tropicalIndigo
+            return .silver
         case 3:
-            return .turquoise
+            return .bronze
         default:
-            return .white.opacity(0.7)
+            return .white
         }
     }
 }

@@ -18,6 +18,8 @@ struct MainTabView: View {
                     Label("Profile", systemImage: "person.fill")
                 }
         }
+        .tint(.white)
+        .background(Color.spaceCadet)
     }
 }
 

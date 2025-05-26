@@ -6,6 +6,9 @@ extension Color {
     static let tropicalIndigo = Color(hex: "818CF8")
     static let naplesYellow = Color(hex: "FFE45E")
     static let white = Color.white
+    static let gold = Color(hex: "FFD700")
+    static let silver = Color(hex: "C0C0C0")
+    static let bronze = Color(hex: "CD7F32")
 }
 
 extension Color {
