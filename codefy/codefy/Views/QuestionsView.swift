@@ -136,12 +136,12 @@ struct QuestionsView: View {
     
     private func colorForCategory(_ category: Category) -> Color {
         switch category {
-        case .oop: return turquoise
-        case .webdev: return tropicalIndigo
-        case .humanResources: return naplesYellow
-        case .structure: return turquoise
-        case .uncategorized: return tropicalIndigo
-        case .swift: return naplesYellow
+        case .oop: return .blue
+        case .webdev: return .green
+        case .humanResources: return .orange
+        case .structure: return .purple
+        case .uncategorized: return .gray
+        case .swift: return .red
         }
     }
 }
