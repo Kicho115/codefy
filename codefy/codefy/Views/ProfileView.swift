@@ -255,12 +255,12 @@ struct ProfileContentView: View {
                 NavigationLink(destination: ActivityHistoryView(questionsViewModel: questionsViewModel)) {
                     HStack {
                         Image(systemName: "clock.arrow.circlepath")
-                            .foregroundColor(.tropicalIndigo)
+                            .foregroundColor(.naplesYellow)
                         Text("Activity History")
-                            .foregroundColor(.tropicalIndigo)
+                            .foregroundColor(.naplesYellow)
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .foregroundColor(.tropicalIndigo.opacity(0.7))
+                            .foregroundColor(.naplesYellow.opacity(0.7))
                     }
                     .padding()
                     .background(Color.spaceCadet)
@@ -285,9 +285,9 @@ struct SignOutButton: View {
         Button(action: onSignOut) {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .foregroundColor(.naplesYellow)
+                    .foregroundColor(.red)
                 Text("Sign Out")
-                    .foregroundColor(.naplesYellow)
+                    .foregroundColor(.red)
                 Spacer()
             }
             .padding()
