@@ -13,10 +13,24 @@ struct QuestionDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(question.text)
-                    .font(.title2)
-                    .bold()
-                    .foregroundColor(.white)
+                HStack {
+                    Text(question.text)
+                        .font(.title2)
+                        .bold()
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        Task {
+                            await viewModel.toggleFavorite()
+                        }
+                    }) {
+                        Image(systemName: viewModel.isFavorited ? "star.fill" : "star")
+                            .foregroundColor(viewModel.isFavorited ? .naplesYellow : .white)
+                            .font(.title2)
+                    }
+                }
                 
                 if viewModel.isAnswered || viewModel.wasPreviouslyAnswered {
                     // Show feedback after answering or for previously answered questions

@@ -220,6 +220,7 @@ struct ProfileContentView: View {
     let showingImagePicker: Bool
     let onImagePickerTap: () -> Void
     let onSignOut: () -> Void
+    @StateObject private var questionsViewModel = QuestionsViewModel()
     
     var body: some View {
         ScrollView {
@@ -234,10 +235,27 @@ struct ProfileContentView: View {
                 
                 StatsGridView(user: user)
                 
+                // Favorite Questions Button
+                NavigationLink(destination: FavoriteQuestionsView(questionsViewModel: questionsViewModel)) {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.naplesYellow)
+                        Text("Favorite Questions")
+                            .foregroundColor(.naplesYellow)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.naplesYellow.opacity(0.7))
+                    }
+                    .padding()
+                    .background(Color.spaceCadet)
+                    .cornerRadius(12)
+                }
+                
                 SignOutButton(onSignOut: onSignOut)
                 
                 Spacer()
             }
+            .padding(.horizontal)
         }
         .background(Color.spaceCadet)
     }

@@ -80,10 +80,11 @@ struct HomeView: View {
                         ScrollView {
                             if questionsViewModel.isLoading {
                                 ProgressView()
-                                    .tint(Color.turquoise)
+                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                            } else if !questionsViewModel.errorMessage.isEmpty {
+                            }
+                            else if !questionsViewModel.errorMessage.isEmpty {
                                 Text(questionsViewModel.errorMessage)
                                     .foregroundColor(Color.naplesYellow)
                                     .padding()

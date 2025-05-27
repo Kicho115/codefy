@@ -8,6 +8,7 @@ class QuestionDetailViewModel: ObservableObject {
     @Published var isAnswered = false
     @Published var wasPreviouslyAnswered = false
     @Published var previousAnswerWasCorrect = false
+    @Published var isFavorited = false
     
     private let question: Question
     private let userId: String
@@ -15,6 +16,10 @@ class QuestionDetailViewModel: ObservableObject {
     init(question: Question, userId: String) {
         self.question = question
         self.userId = userId
+        Task {
+            await checkIfQuestionWasAnswered()
+            await checkIfQuestionIsFavorited()
+        }
     }
     
     func checkIfQuestionWasAnswered() async {
@@ -120,6 +125,40 @@ class QuestionDetailViewModel: ObservableObject {
             print("Updated user stats - Streak: \(userData["streak"] ?? 0)")
         } catch {
             print("Error updating user stats: \(error)")
+        }
+    }
+    
+    private func checkIfQuestionIsFavorited() async {
+        do {
+            let userData = try await FirebaseService.shared.getUserData(userId: userId)
+            guard let userData = userData,
+                  let favoriteQuestions = userData["favoriteQuestions"] as? [String] else { return }
+            
+            isFavorited = favoriteQuestions.contains(question.id)
+        } catch {
+            print("Error checking if question is favorited: \(error)")
+        }
+    }
+    
+    func toggleFavorite() async {
+        do {
+            let userData = try await FirebaseService.shared.getUserData(userId: userId)
+            guard var userData = userData else { return }
+            
+            var favoriteQuestions = userData["favoriteQuestions"] as? [String] ?? []
+            
+            if isFavorited {
+                favoriteQuestions.removeAll { $0 == question.id }
+            } else {
+                favoriteQuestions.append(question.id)
+            }
+            
+            userData["favoriteQuestions"] = favoriteQuestions
+            try await FirebaseService.shared.saveUserData(userId: userId, data: userData)
+            
+            isFavorited.toggle()
+        } catch {
+            print("Error toggling favorite status: \(error)")
         }
     }
 } 
