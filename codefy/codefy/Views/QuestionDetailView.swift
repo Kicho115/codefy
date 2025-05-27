@@ -13,6 +13,42 @@ struct QuestionDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // Creator information
+                if let creator = viewModel.creator {
+                    HStack(spacing: 12) {
+                        if let photoUrl = creator.photoUrl,
+                           let url = URL(string: photoUrl) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 40, height: 40)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(creator.name)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("Created \(question.createdAt.formatted(.relative(presentation: .named)))")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.bottom, 8)
+                }
+                
                 HStack {
                     Text(question.text)
                         .font(.title2)

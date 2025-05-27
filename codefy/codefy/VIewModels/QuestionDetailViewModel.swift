@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseFirestore
+import SwiftUI
 
 @MainActor
 class QuestionDetailViewModel: ObservableObject {
@@ -9,9 +10,11 @@ class QuestionDetailViewModel: ObservableObject {
     @Published var wasPreviouslyAnswered = false
     @Published var previousAnswerWasCorrect = false
     @Published var isFavorited = false
+    @Published var creator: User?
     
     private let question: Question
     private let userId: String
+    private let firebaseService = FirebaseService.shared
     
     init(question: Question, userId: String) {
         self.question = question
@@ -23,31 +26,53 @@ class QuestionDetailViewModel: ObservableObject {
     }
     
     func checkIfQuestionWasAnswered() async {
-        do {
-            let userData = try await FirebaseService.shared.getUserData(userId: userId)
-            guard let userData = userData,
-                  let activityHistory = userData["activityHistory"] as? [[String: Any]] else { return }
-            
-            // Buscar la última actividad relacionada con esta pregunta
-            if let lastActivity = activityHistory
-                .filter({ ($0["questionId"] as? String) == question.id })
-                .sorted(by: { 
-                    let date1 = ($0["date"] as? Timestamp)?.dateValue() ?? Date()
-                    let date2 = ($1["date"] as? Timestamp)?.dateValue() ?? Date()
-                    return date1 > date2
-                })
-                .first {
-                
-                wasPreviouslyAnswered = true
-                isAnswered = true
-                
-                // Verificar si la respuesta fue correcta
-                if let result = lastActivity["result"] as? String {
-                    previousAnswerWasCorrect = result == "correct"
-                }
-            }
-        } catch {
-            print("Error checking if question was answered: \(error)")
+        // Fetch user data to check if question was previously answered
+        if let userData = try? await firebaseService.getUserData(userId: userId),
+           let completedQuestions = userData["completedQuestions"] as? [String] {
+            wasPreviouslyAnswered = completedQuestions.contains(question.id)
+        }
+        
+        // Fetch creator's information
+        if let creatorData = try? await firebaseService.getUserData(userId: question.createdBy) {
+            // Create User object from creator data
+            creator = User(
+                id: question.createdBy,
+                email: creatorData["email"] as? String,
+                name: creatorData["name"] as? String ?? "Unknown User",
+                photoUrl: creatorData["photoUrl"] as? String,
+                bio: creatorData["bio"] as? String,
+                country: creatorData["country"] as? String,
+                createdAt: (creatorData["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
+                lastLoginAt: (creatorData["lastLoginAt"] as? Timestamp)?.dateValue() ?? Date(),
+                streak: creatorData["streak"] as? Int ?? 0,
+                totalQuestionsAnswered: creatorData["totalQuestionsAnswered"] as? Int ?? 0,
+                correctAnswers: creatorData["correctAnswers"] as? Int ?? 0,
+                points: creatorData["points"] as? Int ?? 0,
+                rank: creatorData["rank"] as? Int ?? 0,
+                favoriteQuestions: creatorData["favoriteQuestions"] as? [String] ?? [],
+                completedQuestions: creatorData["completedQuestions"] as? [String] ?? [],
+                notificationSettings: User.NotificationSettings(
+                    email: (creatorData["notificationSettings"] as? [String: Any])?["email"] as? Bool ?? true,
+                    push: (creatorData["notificationSettings"] as? [String: Any])?["push"] as? Bool ?? true,
+                    dailyReminder: (creatorData["notificationSettings"] as? [String: Any])?["dailyReminder"] as? Bool ?? true
+                ),
+                activityHistory: (creatorData["activityHistory"] as? [[String: Any]])?.compactMap { record in
+                    guard let date = (record["date"] as? Timestamp)?.dateValue(),
+                          let typeString = record["type"] as? String,
+                          let type = User.ActivityType(rawValue: typeString),
+                          let questionId = record["questionId"] as? String,
+                          let resultString = record["result"] as? String,
+                          let result = User.QuestionResult(rawValue: resultString) else {
+                        return nil
+                    }
+                    return User.ActivityRecord(
+                        date: date,
+                        type: type,
+                        questionId: questionId,
+                        result: result
+                    )
+                } ?? []
+            )
         }
     }
     
