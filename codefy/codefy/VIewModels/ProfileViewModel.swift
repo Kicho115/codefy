@@ -20,8 +20,10 @@ class ProfileViewModel: ObservableObject {
         return lastLogin > tenMinutesAgo
     }
     
-    func loadUserProfile() async {
-        guard let userId = userId else {
+    func loadUserProfile(userId: String? = nil) async {
+        let targetUserId = userId ?? self.userId
+        
+        guard let targetUserId = targetUserId else {
             error = NSError(domain: "ProfileViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])
             return
         }
@@ -30,7 +32,7 @@ class ProfileViewModel: ObservableObject {
         error = nil
         
         do {
-            let document = try await db.collection("users").document(userId).getDocument()
+            let document = try await db.collection("users").document(targetUserId).getDocument()
             if let user = User.fromFirestore(document) {
                 self.user = user
             } else {

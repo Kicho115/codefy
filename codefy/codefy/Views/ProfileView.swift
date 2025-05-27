@@ -37,15 +37,34 @@ struct ProfileImageView: View {
     let photoUrl: String?
     let showingImagePicker: Bool
     let onImagePickerTap: () -> Void
+    @AppStorage("userId") private var currentUserId: String = ""
+    
+    private var isCurrentUser: Bool {
+        photoUrl?.contains(currentUserId) ?? false
+    }
     
     var body: some View {
         if let photoUrl = photoUrl,
            let url = URL(string: photoUrl) {
-            Menu {
-                Button(action: onImagePickerTap) {
-                    Label("Change Profile Picture", systemImage: "photo")
+            if isCurrentUser {
+                Menu {
+                    Button(action: onImagePickerTap) {
+                        Label("Change Profile Picture", systemImage: "photo")
+                    }
+                } label: {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                    }
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.tropicalIndigo, lineWidth: 2))
                 }
-            } label: {
+            } else {
                 AsyncImage(url: url) { image in
                     image
                         .resizable()
@@ -59,11 +78,18 @@ struct ProfileImageView: View {
                 .overlay(Circle().stroke(Color.tropicalIndigo, lineWidth: 2))
             }
         } else {
-            Menu {
-                Button(action: onImagePickerTap) {
-                    Label("Change Profile Picture", systemImage: "photo")
+            if isCurrentUser {
+                Menu {
+                    Button(action: onImagePickerTap) {
+                        Label("Change Profile Picture", systemImage: "photo")
+                    }
+                } label: {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(.tropicalIndigo)
                 }
-            } label: {
+            } else {
                 Image(systemName: "person.circle.fill")
                     .resizable()
                     .frame(width: 100, height: 100)
@@ -130,22 +156,31 @@ struct ProfileView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var showingImagePicker = false
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
+    let userId: String?
+    
+    init(userId: String? = nil) {
+        self.userId = userId
+    }
     
     var body: some View {
         NavigationView {
-            Group {
-                if viewModel.isLoading {
-                    LoadingView()
-                } else if let user = viewModel.user {
-                    ProfileContentView(
-                        user: user,
-                        isUserActive: viewModel.isUserActive,
-                        showingImagePicker: showingImagePicker,
-                        onImagePickerTap: { showingImagePicker = true },
-                        onSignOut: signOut
-                    )
-                } else if let error = viewModel.error {
-                    ErrorView(error: error)
+            ZStack {
+                Color.spaceCadet.ignoresSafeArea()
+                
+                Group {
+                    if viewModel.isLoading {
+                        LoadingView()
+                    } else if let user = viewModel.user {
+                        ProfileContentView(
+                            user: user,
+                            isUserActive: viewModel.isUserActive,
+                            showingImagePicker: showingImagePicker,
+                            onImagePickerTap: { showingImagePicker = true },
+                            onSignOut: signOut
+                        )
+                    } else if let error = viewModel.error {
+                        ErrorView(error: error)
+                    }
                 }
             }
             .navigationTitle("Profile")
@@ -167,8 +202,12 @@ struct ProfileView: View {
             }
         }
         .task {
-            await viewModel.loadUserProfile()
-            await viewModel.updateLastLogin()
+            if let userId = userId {
+                await viewModel.loadUserProfile(userId: userId)
+            } else {
+                await viewModel.loadUserProfile()
+                await viewModel.updateLastLogin()
+            }
         }
     }
     
@@ -221,6 +260,11 @@ struct ProfileContentView: View {
     let onImagePickerTap: () -> Void
     let onSignOut: () -> Void
     @StateObject private var questionsViewModel = QuestionsViewModel()
+    @AppStorage("userId") private var currentUserId: String = ""
+    
+    private var isCurrentUser: Bool {
+        user.id == currentUserId
+    }
     
     var body: some View {
         ScrollView {
@@ -232,48 +276,50 @@ struct ProfileContentView: View {
                     photoUrl: user.photoUrl,
                     onImagePickerTap: onImagePickerTap
                 )
+                .disabled(!isCurrentUser)
                 
                 StatsGridView(user: user)
                 
-                // Favorite Questions Button
-                NavigationLink(destination: FavoriteQuestionsView(questionsViewModel: questionsViewModel)) {
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.naplesYellow)
-                        Text("Favorite Questions")
-                            .foregroundColor(.naplesYellow)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.naplesYellow.opacity(0.7))
+                if isCurrentUser {
+                    // Favorite Questions Button
+                    NavigationLink(destination: FavoriteQuestionsView(questionsViewModel: questionsViewModel)) {
+                        HStack {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.naplesYellow)
+                            Text("Favorite Questions")
+                                .foregroundColor(.naplesYellow)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.naplesYellow.opacity(0.7))
+                        }
+                        .padding()
+                        .background(Color.spaceCadet)
+                        .cornerRadius(12)
                     }
-                    .padding()
-                    .background(Color.spaceCadet)
-                    .cornerRadius(12)
-                }
-                
-                // Activity History Button
-                NavigationLink(destination: ActivityHistoryView(questionsViewModel: questionsViewModel)) {
-                    HStack {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .foregroundColor(.naplesYellow)
-                        Text("Activity History")
-                            .foregroundColor(.naplesYellow)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.naplesYellow.opacity(0.7))
+                    
+                    // Activity History Button
+                    NavigationLink(destination: ActivityHistoryView(questionsViewModel: questionsViewModel)) {
+                        HStack {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .foregroundColor(.naplesYellow)
+                            Text("Activity History")
+                                .foregroundColor(.naplesYellow)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.naplesYellow.opacity(0.7))
+                        }
+                        .padding()
+                        .background(Color.spaceCadet)
+                        .cornerRadius(12)
                     }
-                    .padding()
-                    .background(Color.spaceCadet)
-                    .cornerRadius(12)
+                    
+                    SignOutButton(onSignOut: onSignOut)
                 }
-                
-                SignOutButton(onSignOut: onSignOut)
                 
                 Spacer()
             }
             .padding(.horizontal)
         }
-        .background(Color.spaceCadet)
     }
 }
 

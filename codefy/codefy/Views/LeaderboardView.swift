@@ -58,45 +58,48 @@ struct LeaderboardRow: View {
     let rank: Int
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Rank
-            Text("\(rank)")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(rankColor)
-                .frame(width: 40)
-            
-            // User info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(user.name)
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Text("\(user.totalQuestionsAnswered) questions answered")
-                    .font(.subheadline)
-                    .foregroundColor(.tropicalIndigo)
+        NavigationLink(destination: ProfileView(userId: user.id)) {
+            HStack(spacing: 16) {
+                // Rank
+                Text("\(rank)")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(rankColor)
+                    .frame(width: 40)
+                
+                // User info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(user.name)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text("\(user.totalQuestionsAnswered) questions answered")
+                        .font(.subheadline)
+                        .foregroundColor(.tropicalIndigo)
+                }
+                
+                Spacer()
+                
+                // Points
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(user.points)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.turquoise)
+                    Text("points")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                }
             }
-            
-            Spacer()
-            
-            // Points
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("\(user.points)")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.turquoise)
-                Text("points")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
-            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.spaceCadet.opacity(0.5))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.tropicalIndigo.opacity(0.2), lineWidth: 1)
+                    )
+            )
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.spaceCadet.opacity(0.5))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.tropicalIndigo.opacity(0.2), lineWidth: 1)
-                )
-        )
+        .buttonStyle(PlainButtonStyle())
     }
     
     private var rankColor: Color {
