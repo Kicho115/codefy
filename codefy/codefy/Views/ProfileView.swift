@@ -251,6 +251,22 @@ struct ProfileContentView: View {
                     .cornerRadius(12)
                 }
                 
+                // Activity History Button
+                NavigationLink(destination: ActivityHistoryView(questionsViewModel: questionsViewModel)) {
+                    HStack {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundColor(.tropicalIndigo)
+                        Text("Activity History")
+                            .foregroundColor(.tropicalIndigo)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.tropicalIndigo.opacity(0.7))
+                    }
+                    .padding()
+                    .background(Color.spaceCadet)
+                    .cornerRadius(12)
+                }
+                
                 SignOutButton(onSignOut: onSignOut)
                 
                 Spacer()
