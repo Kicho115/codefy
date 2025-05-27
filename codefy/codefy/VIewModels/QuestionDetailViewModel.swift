@@ -147,6 +147,11 @@ class QuestionDetailViewModel: ObservableObject {
             // Save updated user data
             try await FirebaseService.shared.saveUserData(userId: userId, data: userData)
             
+            // Update all user ranks if the answer was correct
+            if isCorrect {
+                try await FirebaseService.shared.updateUserRanks()
+            }
+            
             print("Updated user stats - Streak: \(userData["streak"] ?? 0)")
         } catch {
             print("Error updating user stats: \(error)")

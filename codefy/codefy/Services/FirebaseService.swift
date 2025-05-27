@@ -156,4 +156,18 @@ class FirebaseService {
         let document = try await db.collection("users").document(userId).getDocument()
         return document.data()
     }
+    
+    func updateUserRanks() async throws {
+        // Get all users ordered by points
+        let snapshot = try await db.collection("users")
+            .order(by: "points", descending: true)
+            .getDocuments()
+        
+        // Update each user's rank
+        for (index, document) in snapshot.documents.enumerated() {
+            try await document.reference.updateData([
+                "rank": index + 1
+            ])
+        }
+    }
 } 
